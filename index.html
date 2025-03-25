@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Premier League API</title>
+    <style>
+        /* Estilo Geral */
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #37003C;
+            color: white;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Cabeçalho */
+        header {
+            background: #24002A;
+            padding: 15px;
+        }
+
+        .logo {
+            width: 150px;
+        }
+
+        h1 {
+            color: #FFFFFF;
+            margin: 10px 0;
+        }
+
+        /* Layout principal */
+        .container {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 20px;
+            padding: 20px;
+        }
+
+        .section {
+            background: white;
+            color: #333;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0px 0px 10px rgba(0,0,0,0.2);
+            flex: 1;
+            min-width: 280px;
+            max-width: 400px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+
+        th {
+            background: #9a4ba1;
+            color: white;
+        }
+
+        /* Botão Ver Mais */
+        .btn {
+            margin-top: 10px;
+            padding: 10px;
+            background: #37003C;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .btn:hover {
+            background: #24002A;
+        }
+
+        /* Rodapé */
+        footer {
+            background: #24002A;
+            color: white;
+            text-align: center;
+            padding: 15px;
+            margin-top: 20px;
+        }
+
+        /* Responsividade */
+        @media (max-width: 1024px) {
+            .container {
+                flex-direction: column;
+                align-items: center;
+            }
+            .section {
+                max-width: 90%;
+            }
+        }
+
+        @media (max-width: 600px) {
+            h1 {
+                font-size: 22px;
+            }
+            .section {
+                padding: 10px;
+            }
+            th, td {
+                font-size: 14px;
+                padding: 6px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Cabeçalho -->
+    <header>
+        <img src="https://upload.wikimedia.org/wikipedia/en/f/f2/Premier_League_Logo.svg" alt="Premier League" class="logo">
+    </header>
+
+    <h1>Premier League - Dados Atualizados</h1>
+
+    <!-- Conteúdo Principal -->
+    <div class="container">
+        <div class="section">
+            <h2>Classificação</h2>
+            <table>
+                <tr>
+                    <th>Posição</th>
+                    <th>Time</th>
+                    <th>Pontos</th>
+                </tr>
+                {% for time in classificacao["standings"][0]["table"] %}
+                <tr>
+                    <td>{{ time["position"] }}</td>
+                    <td>{{ time["team"]["name"] }}</td>
+                    <td>{{ time["points"] }}</td>
+                </tr>
+                {% endfor %}
+            </table>
+        </div>
+
+        <div class="section">
+            <h2>Próximas Partidas</h2>
+            <table id="partidas-table">
+                <tr>
+                    <th>Data</th>
+                    <th>Casa</th>
+                    <th>Visitante</th>
+                </tr>
+                {% for match in partidas["matches"][:5] %}
+                <tr class="partida">
+                    <td>{{ match["utcDate"][:10] }}</td>
+                    <td>{{ match["homeTeam"]["name"] }}</td>
+                    <td>{{ match["awayTeam"]["name"] }}</td>
+                </tr>
+                {% endfor %}
+            </table>
+            <button id="verMais" class="btn">Ver Mais</button>
+        </div>
+
+        <div class="section">
+            <h2>Artilheiros</h2>
+            <table>
+                <tr>
+                    <th>Jogador</th>
+                    <th>Time</th>
+                    <th>Gols</th>
+                </tr>
+                {% for jogador in artilheiros["scorers"] %}
+                <tr>
+                    <td>{{ jogador["player"]["name"] }}</td>
+                    <td>{{ jogador["team"]["name"] }}</td>
+                    <td>{{ jogador["goals"] }}</td>
+                </tr>
+                {% endfor %}
+            </table>
+        </div>
+    </div>
+
+    <!-- Rodapé -->
+    <footer>
+        <p>© 2025 Premier League - Todos os direitos reservados</p>
+    </footer>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const remainingPartidas = JSON.parse('{{ partidas["matches"][5:] | tojson | safe }}');
+            
+            let index = 0;
+            const table = document.getElementById("partidas-table");
+            const btn = document.getElementById("verMais");
+
+            btn.addEventListener("click", function () {
+                let count = 0;
+                while (index < remainingPartidas.length && count < 5) {
+                        let row = table.insertRow();
+                        row.insertCell(0).innerText = remainingPartidas[index].date;
+                        row.insertCell(1).innerText = remainingPartidas[index].home;
+                        row.insertCell(2).innerText = remainingPartidas[index].away;
+                        index++;
+                        count++;
+                    }
+                    if (index >= remainingPartidas.length) {
+                    btn.style.display = "none";
+                }   
+            });
+        });
+    </script>
+
+</body>
+</html>
